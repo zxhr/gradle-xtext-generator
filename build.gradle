@@ -84,3 +84,33 @@ tasks.named(JavaPlugin.TEST_TASK_NAME) {
     useJUnitPlatform()
     systemProperty 'java.io.tmpdir', temporaryDir
 }
+
+tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
+    options.source = '8'
+    def offlineLinks = 
+        ['https://docs.oracle.com/javase/8/docs/api/' :
+            ['java.lang',
+             'java.util.function'],
+         "https://www.javadoc.io/doc/org.eclipse.xtext/org.eclipse.xtext.xtext.generator/${xtextVersion}/" :
+            ['org.eclipse.xtext.xtext.generator',
+             'org.eclipse.xtext.xtext.generator.model',
+             'org.eclipse.xtext.xtext.generator.model.project'],
+         "https://docs.gradle.org/${gradle.gradleVersion}/javadoc/" :
+            ['org.gradle.api',
+             'org.gradle.api.file',
+             'org.gradle.api.model',
+             'org.gradle.api.plugins',
+             'org.gradle.api.provider',
+             'org.gradle.api.tasks',
+             'org.gradle.util'],
+         'https://javaee.github.io/javaee-spec/javadocs/' :
+            ['javax.inject']]
+    doFirst {
+        offlineLinks.eachWithIndex { url, packages, index ->
+            def javadocsDir = file("${temporaryDir}/javadocs-${index}")
+            javadocsDir.mkdirs()
+            file("${javadocsDir}/package-list").text = packages.join('\n') + '\n'
+            options.linksOffline(url, javadocsDir.path)
+        }
+    }
+}
