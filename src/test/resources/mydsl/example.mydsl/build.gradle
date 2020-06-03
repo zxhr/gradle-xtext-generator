@@ -1,0 +1,11 @@
+plugins {
+    id 'com.github.zxhr.xtext-generator-runtime'
+    id 'com.github.zxhr.xtext-generator-runtime-test'
+}
+
+dependencies {
+    implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
+    implementation "org.eclipse.xtext:org.eclipse.xtext:$xtextVersion"
+
+    testImplementation "org.eclipse.xtext:org.eclipse.xtext.testing:$xtextVersion"
+}
