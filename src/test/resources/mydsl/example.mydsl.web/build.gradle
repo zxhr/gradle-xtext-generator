@@ -1,0 +1,10 @@
+plugins {
+    id 'com.github.zxhr.xtext-generator-web'
+}
+
+dependencies {
+    implementation project(':example.mydsl')
+    implementation project(':example.mydsl.ide')
+    implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
+    implementation "org.eclipse.xtext:org.eclipse.xtext.web:$xtextVersion"
+}

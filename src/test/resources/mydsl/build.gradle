@@ -1,0 +1,20 @@
+import org.eclipse.xtext.xtext.generator.StandardLanguage
+
+plugins {
+    id 'com.github.zxhr.xtext-generator-root-project'
+}
+
+subprojects {
+    group = 'org.xtext.example'
+    version = '0.0.0-SNAPSHOT'
+    repositories {
+        jcenter()
+    }
+}
+
+xtextRoot {
+    language('MyDsl', StandardLanguage) {
+        grammarUri = uri('src/main/xtext/MyDsl.xtext').toString()
+        fileExtensions = 'mydsl'
+    }
+}

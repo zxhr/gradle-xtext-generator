@@ -1,0 +1,116 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+group = 'com.github.zxhr'
+version = '0.0.1-SNAPSHOT'
+
+ext {
+    xtextVersion = '2.21.0'
+}
+
+repositories {
+    jcenter()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
+}
+
+dependencies {
+    implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
+    implementation 'org.eclipse.emf:org.eclipse.emf.mwe2.launch'
+    implementation 'org.eclipse.xtext:xtext-antlr-generator'
+    implementation "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextVersion"
+    implementation "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextVersion"
+
+    testImplementation gradleTestKit()
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+gradlePlugin {
+    plugins {
+        xtextRoot {
+            id = 'com.github.zxhr.xtext-generator-root-project'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextRootProjectPlugin'
+            displayName = 'Xtext DSL root project plugin'
+            description = 'Plugin for generating an Xtext DSL language with MWE2'
+        }
+        xtextRuntime {
+            id = 'com.github.zxhr.xtext-generator-runtime'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextRuntimePlugin'
+            displayName = 'Xtext DSL runtime project plugin'
+            description = 'Plugin for configuring the runtime project of an Xtext DSL language'
+        }
+        xtextRuntimeTest {
+            id = 'com.github.zxhr.xtext-generator-runtime-test'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextRuntimeTestPlugin'
+            displayName = 'Xtext DSL runtime test project plugin'
+            description = 'Plugin for configuring the runtime test project of an Xtext DSL language'
+        }
+        xtextGenericIde {
+            id = 'com.github.zxhr.xtext-generator-generic-ide'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextGenericIdePlugin'
+            displayName = 'Xtext DSL generic ide project plugin'
+            description = 'Plugin for configuring the generic ide project of an Xtext DSL language'
+        }
+        xtextEclipsePlugin {
+            id = 'com.github.zxhr.xtext-generator-eclipse-plugin'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextEclipsePluginPlugin'
+            displayName = 'Xtext DSL eclipse plugin project plugin'
+            description = 'Plugin for configuring the eclipse plugin project of an Xtext DSL language'
+        }
+        xtextEclipsePluginTest {
+            id = 'com.github.zxhr.xtext-generator-eclipse-plugin-test'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextEclipsePluginTestPlugin'
+            displayName = 'Xtext DSL eclipse plugin test project plugin'
+            description = 'Plugin for configuring the eclipse plugin test project of an Xtext DSL language'
+        }
+        xtextWeb {
+            id = 'com.github.zxhr.xtext-generator-web'
+            implementationClass = 'com.github.zxhr.gradle.xtext.XtextWebPlugin'
+            displayName = 'Xtext DSL web project plugin'
+            description = 'Plugin for configuring the web project of an Xtext DSL language'
+        }
+    }
+}
+
+tasks.named(JavaPlugin.TEST_TASK_NAME) {
+    useJUnitPlatform()
+    systemProperty 'java.io.tmpdir', temporaryDir
+}
+
+tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
+    options.source = '8'
+    def offlineLinks = 
+        ['https://docs.oracle.com/javase/8/docs/api/' :
+            ['java.lang',
+             'java.util.function'],
+         "https://www.javadoc.io/doc/org.eclipse.xtext/org.eclipse.xtext.xtext.generator/${xtextVersion}/" :
+            ['org.eclipse.xtext.xtext.generator',
+             'org.eclipse.xtext.xtext.generator.model',
+             'org.eclipse.xtext.xtext.generator.model.project'],
+         "https://docs.gradle.org/${gradle.gradleVersion}/javadoc/" :
+            ['org.gradle.api',
+             'org.gradle.api.file',
+             'org.gradle.api.model',
+             'org.gradle.api.plugins',
+             'org.gradle.api.provider',
+             'org.gradle.api.tasks',
+             'org.gradle.util'],
+         'https://javaee.github.io/javaee-spec/javadocs/' :
+            ['javax.inject']]
+    doFirst {
+        offlineLinks.eachWithIndex { url, packages, index ->
+            def javadocsDir = file("${temporaryDir}/javadocs-${index}")
+            javadocsDir.mkdirs()
+            file("${javadocsDir}/package-list").text = packages.join('\n') + '\n'
+            options.linksOffline(url, javadocsDir.path)
+        }
+    }
+}
