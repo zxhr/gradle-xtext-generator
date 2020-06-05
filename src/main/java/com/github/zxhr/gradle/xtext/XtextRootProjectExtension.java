@@ -11,6 +11,7 @@ import java.util.stream.StreamSupport;
 import javax.inject.Inject;
 
 import org.eclipse.xtext.xtext.generator.CodeConfig;
+import org.eclipse.xtext.xtext.generator.StandardLanguage;
 import org.eclipse.xtext.xtext.generator.XtextGenerator;
 import org.eclipse.xtext.xtext.generator.XtextGeneratorLanguage;
 import org.eclipse.xtext.xtext.generator.model.ManifestAccess;
@@ -207,7 +208,14 @@ public abstract class XtextRootProjectExtension {
         @SuppressWarnings("unchecked")
         T language = (T) languages.compute(name, (__, previous) -> {
             if (previous == null) {
-                T instance = getObjects().newInstance(languageClass);
+                T instance;
+                if (XtextGeneratorLanguage.class == languageClass) {
+                    instance = (T) new XtextGeneratorLanguage();
+                } else if (StandardLanguage.class == languageClass) {
+                    instance = (T) new StandardLanguage();
+                } else {
+                    instance = getObjects().newInstance(languageClass);
+                }
                 instance.setName(name);
                 generator.addLanguage(instance);
                 return instance;

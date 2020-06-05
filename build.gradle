@@ -83,6 +83,9 @@ gradlePlugin {
 tasks.named(JavaPlugin.TEST_TASK_NAME) {
     useJUnitPlatform()
     systemProperty 'java.io.tmpdir', temporaryDir
+    doFirst {
+        mkdir temporaryDir
+    }
 }
 
 tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
