@@ -1,0 +1,22 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+repositories {
+    gradlePluginPortal()
+    jcenter()
+}
+
+gradlePlugin {
+    plugins {
+        configurePublishing {
+            id = 'configure-publishing'
+            implementationClass = 'com.github.zxhr.buildsrc.gradle.xtext.ConfigurePublishingPlugin'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.gradle.publish:plugin-publish-plugin:0.12.0'
+    implementation 'org.apache.maven:maven-model:3.6.3'
+}
