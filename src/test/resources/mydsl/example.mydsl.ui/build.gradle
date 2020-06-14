@@ -7,7 +7,7 @@ import org.gradle.internal.os.OperatingSystem
 
 repositories {
     ivy {
-        url 'https://download.eclipse.org/releases/2020-03/202003181000/plugins/'
+        url 'https://download.eclipse.org/releases/2020-06/202006171000/plugins/'
         patternLayout {
             artifact '[artifact]_[revision].[ext]'
         }
@@ -24,18 +24,18 @@ dependencies {
     implementation project(':example.mydsl.ide')
     implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
     implementation "org.eclipse.xtext:org.eclipse.xtext.ide:$xtextVersion"
-    implementation 'org.eclipse.platform:org.eclipse.compare:3.7.900'
+    implementation 'org.eclipse.platform:org.eclipse.compare:3.7.1000'
     if (OperatingSystem.current().isWindows()) {
-        compileOnly 'org.eclipse.platform:org.eclipse.swt.win32.win32.x86_64:3.114.0'
+        compileOnly 'org.eclipse.platform:org.eclipse.swt.win32.win32.x86_64:3.114.100'
     } else if (OperatingSystem.current().isLinux()) {
-        compileOnly 'org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64:3.114.0'
+        compileOnly 'org.eclipse.platform:org.eclipse.swt.gtk.linux.x86_64:3.114.100'
     } else if (OperatingSystem.current().isMacOsX()) {
-        compileOnly 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.x86_64:3.114.0'
+        compileOnly 'org.eclipse.platform:org.eclipse.swt.cocoa.macosx.x86_64:3.114.100'
     }
-    implementation name: 'org.eclipse.xtext.ui', version: '2.21.0.v20200302-1241', ext: 'jar'
-    implementation name: 'org.eclipse.xtext.ui.codetemplates.ui', version: '2.21.0.v20200302-1241', ext: 'jar'
-    implementation name: 'org.eclipse.xtext.ui.shared', version: '2.21.0.v20200302-1241', ext: 'jar'
-    implementation name: 'org.eclipse.xtext.builder', version: '2.21.0.v20200302-1241', ext: 'jar'
+    implementation name: 'org.eclipse.xtext.ui', version: '2.22.0.v20200602-1242', ext: 'jar'
+    implementation name: 'org.eclipse.xtext.ui.codetemplates.ui', version: '2.22.0.v20200602-1242', ext: 'jar'
+    implementation name: 'org.eclipse.xtext.ui.shared', version: '2.22.0.v20200602-1242', ext: 'jar'
+    implementation name: 'org.eclipse.xtext.builder', version: '2.22.0.v20200602-1242', ext: 'jar'
     implementation name: 'org.eclipse.emf.edit', version: '2.16.0.v20190920-0401', ext: 'jar'
     implementation name: 'org.eclipse.emf.edit.ui', version: '2.18.0.v20200205-0529', ext: 'jar'
 

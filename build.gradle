@@ -6,7 +6,7 @@ group = 'com.github.zxhr'
 version = '0.0.1-SNAPSHOT'
 
 ext {
-    xtextVersion = '2.21.0'
+    xtextVersion = '2.22.0'
 }
 
 repositories {
