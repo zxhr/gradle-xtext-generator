@@ -1,5 +1,5 @@
 plugins {
-    id 'java-gradle-plugin'
+    id 'configure-publishing'
 }
 
 group = 'com.github.zxhr'
@@ -21,13 +21,12 @@ java {
 }
 
 dependencies {
+    api "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextVersion"
     implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
     implementation 'org.eclipse.emf:org.eclipse.emf.mwe2.launch'
     implementation 'org.eclipse.xtext:xtext-antlr-generator'
     implementation "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextVersion"
-    implementation "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextVersion"
 
-    testImplementation gradleTestKit()
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
@@ -80,6 +79,18 @@ gradlePlugin {
     }
 }
 
+pluginBundle {
+    website = 'https://github.com/zxhr/gradle-xtext-generator/'
+    vcsUrl = website
+    tags = ['xtext', 'mwe2']
+
+    mavenCoordinates {
+        groupId = project.group
+        artifactId = project.name
+        version = project.version
+    }
+}
+
 tasks.named(JavaPlugin.TEST_TASK_NAME) {
     useJUnitPlatform()
     systemProperty 'java.io.tmpdir', temporaryDir
@@ -116,4 +127,8 @@ tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
             options.linksOffline(url, javadocsDir.path)
         }
     }
+}
+
+dependencyLocking {
+    lockAllConfigurations()
 }
