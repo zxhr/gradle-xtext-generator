@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.emf.mwe2.language.Mwe2StandaloneSetup;
 import org.eclipse.emf.mwe2.runtime.workflow.IWorkflowContext;
 import org.eclipse.emf.mwe2.runtime.workflow.Workflow;
@@ -12,11 +11,11 @@ import org.eclipse.xtext.xtext.generator.XtextGenerator;
 import org.eclipse.xtext.xtext.generator.XtextGeneratorLanguage;
 import org.eclipse.xtext.xtext.generator.model.project.SubProjectConfig;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-
 import com.google.inject.Injector;
 
 /**
@@ -26,7 +25,7 @@ public abstract class GenerateMwe2 extends DefaultTask {
 
     public GenerateMwe2() {
         getGenerator().finalizeValueOnRead();
-        getInputs().files(getGenerator().map(generator -> {
+        ((Task) this).getInputs().files(getGenerator().map(generator -> {
             List<XtextGeneratorLanguage> languages = generator.getLanguageConfigs();
             List<File> grammars = new ArrayList<>(languages.size());
             for (XtextGeneratorLanguage language : languages) {
@@ -37,7 +36,7 @@ public abstract class GenerateMwe2 extends DefaultTask {
             }
             return grammars;
         })).withPathSensitivity(PathSensitivity.NONE).withPropertyName("grammars");
-        getOutputs().dirs(getGenerator().map(generator -> {
+        ((Task) this).getOutputs().dirs(getGenerator().map(generator -> {
             List<File> outputDirs = new ArrayList<>();
             for (SubProjectConfig projectConfig : generator.getConfiguration().getProject().getEnabledProjects()) {
                 outputDirs.add(new File(projectConfig.getSrcGenPath()));

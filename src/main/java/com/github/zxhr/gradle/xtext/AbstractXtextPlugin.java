@@ -2,19 +2,25 @@ package com.github.zxhr.gradle.xtext;
 
 import java.io.File;
 import java.util.function.Function;
-
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import com.github.zxhr.gradle.xtext.model.project.IBundleGradleProjectConfig;
 import com.github.zxhr.gradle.xtext.model.project.IRuntimeGradleProjectConfig;
 import com.github.zxhr.gradle.xtext.model.project.ISubGradleProjectConfig;
@@ -59,6 +65,12 @@ import com.github.zxhr.gradle.xtext.model.project.IWebGradleProjectConfig;
  */
 public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> implements Plugin<Project> {
 
+    /**
+     * The name of the {@link ConfigurePde} task for configuring the project for
+     * Eclipse PDE.
+     */
+    public static final String CONFIGURE_PDE_TASK_NAME = "configurePde";
+
     private final String sourceSetName;
     private final String extensionName;
     private final Class<C> configClass;
@@ -84,6 +96,9 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
         C projectConfig = configConstructor.apply(project);
         project.getExtensions().add(configClass, extensionName, projectConfig);
         configure(project, sourceSetName, projectConfig);
+        if (IBundleGradleProjectConfig.class.isAssignableFrom(configClass)) {
+            configurePdeTask(project);
+        }
     }
 
     private static void configure(Project project, String sourceSetName, ISubGradleProjectConfig projectConfig) {
@@ -137,6 +152,43 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
             resources.srcDir(webConfig.getAssetsDirectory().getAsFile().map(File::getParent));
         }
+    }
+
+    private static void configurePdeTask(Project project) {
+        project.getPlugins().withType(EclipsePlugin.class, plugin -> {
+            String cleanPde = "clean" + Character.toUpperCase(CONFIGURE_PDE_TASK_NAME.charAt(0))
+                    + CONFIGURE_PDE_TASK_NAME.substring(1);
+            TaskContainer tasks = project.getTasks();
+            TaskProvider<ConfigurePde> configurePde;
+            try {
+                tasks.named(CONFIGURE_PDE_TASK_NAME, ConfigurePde.class);
+                return;
+            } catch (UnknownTaskException e) {
+                configurePde = tasks.register(CONFIGURE_PDE_TASK_NAME, ConfigurePde.class, task -> {
+                    ((Task) task).setGroup("IDE");
+                    ((Task) task).setDescription("Generates the org.eclipse.pde.core.prefs file.");
+                    ((Task) task).shouldRunAfter(cleanPde);
+                    task.getPdeDirectory().set(project.getLayout().getBuildDirectory().dir("pde"));
+                    task.getPdeSettingFile().convention(
+                            project.getLayout().getProjectDirectory().file(".settings/org.eclipse.pde.core.prefs"));
+                    task.getJar().set(tasks.named(JavaPlugin.JAR_TASK_NAME, Jar.class).flatMap(Jar::getArchiveFile));
+                });
+                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class)
+                        .getSourceSets();
+                SourceSet pde = sourceSets.create("pde");
+                pde.getResources().srcDir(configurePde.flatMap(ConfigurePde::getPdeDirectory));
+            }
+            try {
+                tasks.named(cleanPde);
+            } catch (UnknownTaskException e) {
+                tasks.register(cleanPde, Delete.class,
+                        task -> task.delete(configurePde.flatMap(ConfigurePde::getPdeSettingFile)));
+            }
+            plugin.getLifecycleTask().configure(task -> task.dependsOn(CONFIGURE_PDE_TASK_NAME));
+            plugin.getCleanTask().configure(task -> task.dependsOn(cleanPde));
+            EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
+            eclipseModel.synchronizationTasks(CONFIGURE_PDE_TASK_NAME);
+        });
     }
 
 }
