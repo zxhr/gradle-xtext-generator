@@ -8,4 +8,5 @@ dependencies {
     implementation "org.eclipse.xtext:org.eclipse.xtext:$xtextVersion"
 
     testImplementation "org.eclipse.xtext:org.eclipse.xtext.testing:$xtextVersion"
+    testImplementation 'junit:junit:4.12'
 }

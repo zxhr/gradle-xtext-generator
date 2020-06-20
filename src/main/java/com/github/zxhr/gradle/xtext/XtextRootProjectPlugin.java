@@ -101,8 +101,8 @@ public class XtextRootProjectPlugin implements Plugin<Project> {
             if (project.getExtensions().findByName(EXTENSION_NAME) == null) {
                 project.getExtensions().add(XtextRootProjectExtension.class, EXTENSION_NAME, rootExtension);
             }
+            addXtextVersion(project);
         });
-        addXtextVersion(project);
     }
 
     private Object getXtextVersion(Project project, XtextRootProjectExtension rootExtension) {
