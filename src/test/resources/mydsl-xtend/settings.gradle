@@ -1,0 +1,5 @@
+rootProject.name = 'mydsl-xtend'
+include 'example.mydsl'
+include 'example.mydsl.ide'
+include 'example.mydsl.ui'
+include 'example.mydsl.web'

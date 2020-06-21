@@ -21,19 +21,17 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class XtextProjectPluginsFunctionalTest {
 
     private Path tempDir;
 
-    @BeforeEach
-    public void setup() throws IOException {
-        tempDir = Files.createTempDirectory(null);
-        Path rootProject = Paths.get("src", "test", "resources", "mydsl");
+    private void setupProject(String project) throws IOException {
+        tempDir = Files.createTempDirectory(project);
+        Path rootProject = Paths.get("src", "test", "resources", project);
         Files.walkFileTree(rootProject, new SimpleFileVisitor<Path>() {
-
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 Path tempFile = tempDir.resolve(rootProject.relativize(file));
@@ -41,14 +39,15 @@ public class XtextProjectPluginsFunctionalTest {
                 Files.copy(file, tempFile);
                 return FileVisitResult.CONTINUE;
             }
-
         });
     }
 
-    @Test
-    public void testPlugin() {
+    @ParameterizedTest
+    @ValueSource(strings = { "mydsl", "mydsl-xtend" })
+    public void testPlugin(String project) throws IOException {
+        setupProject(project);
         BuildResult result = GradleRunner.create().withProjectDir(tempDir.toFile()).withPluginClasspath()
-                .withArguments(CLEAN_TASK_NAME, BUILD_TASK_NAME).build();
+                .withArguments(CLEAN_TASK_NAME, BUILD_TASK_NAME, "--stacktrace").build();
         assertEquals(SUCCESS, result.task(":" + GENERATE_MWE2_TASK_NAME).getOutcome());
         assertEquals(SUCCESS, result.task(":example.mydsl:" + COMPILE_JAVA_TASK_NAME).getOutcome());
         assertEquals(SUCCESS, result.task(":example.mydsl:" + COMPILE_TEST_JAVA_TASK_NAME).getOutcome());
