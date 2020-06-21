@@ -301,7 +301,8 @@ public abstract class XtextRootProjectExtension {
 
     private void copyWeb(IWebGradleProjectConfig fromConfig, WebProjectConfig toConfig) {
         copyProject(fromConfig, toConfig);
-        toConfig.setAssets(fromConfig.getAssetsDirectory().get().getAsFile().getAbsolutePath());
+        toConfig.setAssets(toConfig.getRootPath() + "/"
+                + relativeToRoot(fromConfig.getProject().getProjectDir(), fromConfig.getAssetsDirectory()));
     }
 
     private void copyProject(ISubGradleProjectConfig fromConfig, SubProjectConfig toConfig) {

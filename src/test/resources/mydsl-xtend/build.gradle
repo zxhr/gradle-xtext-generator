@@ -2,9 +2,11 @@ import org.eclipse.xtext.xtext.generator.StandardLanguage
 
 plugins {
     id 'com.github.zxhr.xtext-generator-root-project'
+    id 'org.xtext.xtend' version '2.0.8' apply false
 }
 
 subprojects {
+    apply plugin: 'org.xtext.xtend'
     group = 'org.xtext.example'
     version = '0.0.0-SNAPSHOT'
     repositories {
@@ -13,6 +15,7 @@ subprojects {
 }
 
 xtextRoot {
+    codeConfig.preferXtendStubs = true
     language('MyDsl', StandardLanguage) {
         grammarUri = uri('src/main/xtext/MyDsl.xtext').toString()
         fileExtensions = 'mydsl'

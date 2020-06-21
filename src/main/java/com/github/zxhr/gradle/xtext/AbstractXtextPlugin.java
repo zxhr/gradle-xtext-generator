@@ -147,6 +147,7 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
             resources.srcDir(runtimeConfig.getEcoreModelDirectory().getAsFile().map(File::getParentFile));
+            resources.srcDir(runtimeConfig.getSrcGenDirectory());
         }
         if (projectConfig instanceof IWebGradleProjectConfig) {
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
