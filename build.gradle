@@ -91,9 +91,22 @@ pluginBundle {
     }
 }
 
+publishing {
+    repositories {
+        maven {
+            name = 'test'
+            url "${buildDir}/m2"
+        }
+    }
+}
+
 tasks.named(JavaPlugin.TEST_TASK_NAME) {
+    dependsOn 'publishAllPublicationsToTestRepository'
     useJUnitPlatform()
     systemProperty 'java.io.tmpdir', temporaryDir
+    systemProperty 'm2', file(publishing.repositories.test.url)
+    systemProperty 'pluginVersion', version
+    systemProperty 'xtextVersion', xtextVersion
     doFirst {
         mkdir temporaryDir
     }

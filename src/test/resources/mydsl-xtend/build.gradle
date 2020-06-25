@@ -1,9 +1,19 @@
 import org.eclipse.xtext.xtext.generator.StandardLanguage
 
-plugins {
-    id 'com.github.zxhr.xtext-generator-root-project'
-    id 'org.xtext.xtend' version '2.0.8' apply false
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath platform("org.eclipse.xtext:xtext-dev-bom:${xtextVersion}")
+        classpath "com.github.zxhr:gradle-xtext-generator:${pluginVersion}"
+        classpath 'org.xtext:xtext-gradle-plugin:2.0.8'
+    }
 }
+
+apply plugin: 'com.github.zxhr.xtext-generator-root-project'
+apply plugin: 'org.xtext.xtend'
 
 subprojects {
     apply plugin: 'org.xtext.xtend'
