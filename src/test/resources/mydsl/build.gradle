@@ -6,14 +6,17 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.github.zxhr:gradle-xtext-generator:${pluginVersion}"
+        classpath enforcedPlatform("org.eclipse.xtext:xtext-dev-bom:$xtextExampleVersion")
+        classpath "com.github.zxhr:gradle-xtext-generator:$pluginVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextExampleVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextExampleVersion"
     }
 }
 
 apply plugin: 'com.github.zxhr.xtext-generator-root-project'
 
 subprojects {
-    group = 'org.xtext.example'
+    group = 'org.xtext.example.mydsl'
     version = '0.0.0-SNAPSHOT'
     repositories {
         jcenter()

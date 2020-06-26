@@ -43,11 +43,12 @@ public class XtextProjectPluginsFunctionalTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "mydsl", "mydsl-xtend" })
+    @ValueSource(strings = { "mydsl", "mydsl-xtend", "mydsl-xtext-version" })
     public void testPlugin(String project) throws IOException {
         setupProject(project);
         BuildResult result = GradleRunner.create().withProjectDir(tempDir.toFile()).forwardOutput()
-                .withArguments(CLEAN_TASK_NAME, BUILD_TASK_NAME, "-PxtextVersion=" + System.getProperty("xtextVersion"),
+                .withArguments(CLEAN_TASK_NAME, BUILD_TASK_NAME,
+                        "-PxtextExampleVersion=" + System.getProperty("xtextVersion"),
                         "-PpluginVersion=" + System.getProperty("pluginVersion"),
                         "-Dmaven.repo.local=" + System.getProperty("m2"), "-s")
                 .build();

@@ -6,8 +6,10 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath platform("org.eclipse.xtext:xtext-dev-bom:${xtextVersion}")
-        classpath "com.github.zxhr:gradle-xtext-generator:${pluginVersion}"
+        classpath enforcedPlatform("org.eclipse.xtext:xtext-dev-bom:$xtextExampleVersion")
+        classpath "com.github.zxhr:gradle-xtext-generator:$pluginVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextExampleVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextExampleVersion"
         classpath 'org.xtext:xtext-gradle-plugin:2.0.8'
     }
 }
@@ -17,7 +19,7 @@ apply plugin: 'org.xtext.xtend'
 
 subprojects {
     apply plugin: 'org.xtext.xtend'
-    group = 'org.xtext.example'
+    group = 'org.xtext.example.mydsl.xtend'
     version = '0.0.0-SNAPSHOT'
     repositories {
         jcenter()
