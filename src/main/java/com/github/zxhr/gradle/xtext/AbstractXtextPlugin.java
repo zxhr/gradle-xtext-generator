@@ -13,6 +13,7 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -139,20 +140,22 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
         project.getTasks().named(sourceSet.getProcessResourcesTaskName(), task -> task.dependsOn(generateMwe2));
         sourceSet.getJava().srcDir(projectConfig.getSrcGenDirectory());
         SourceDirectorySet resources = sourceSet.getResources();
-        resources.srcDir(projectConfig.getMetaInfDirectory().getAsFile().map(File::getParentFile));
+        SetProperty<File> resourceDirs = project.getObjects().setProperty(File.class);
+        resourceDirs.add(projectConfig.getMetaInfDirectory().getAsFile().map(File::getParentFile));
         if (projectConfig instanceof IBundleGradleProjectConfig) {
             IBundleGradleProjectConfig bundleConfig = (IBundleGradleProjectConfig) projectConfig;
-            resources.srcDir(bundleConfig.getPluginXml().getAsFile().map(File::getParentFile));
+            resourceDirs.add(bundleConfig.getPluginXml().getAsFile().map(File::getParentFile));
         }
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
-            resources.srcDir(runtimeConfig.getEcoreModelDirectory().getAsFile().map(File::getParentFile));
-            resources.srcDir(runtimeConfig.getSrcGenDirectory());
+            resourceDirs.add(runtimeConfig.getEcoreModelDirectory().getAsFile().map(File::getParentFile));
+            resourceDirs.add(runtimeConfig.getSrcGenDirectory().getAsFile());
         }
         if (projectConfig instanceof IWebGradleProjectConfig) {
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
-            resources.srcDir(webConfig.getAssetsDirectory().getAsFile().map(File::getParent));
+            resourceDirs.add(webConfig.getAssetsDirectory().getAsFile().map(File::getParentFile));
         }
+        resources.srcDir(resourceDirs);
     }
 
     private static void configurePdeTask(Project project) {
