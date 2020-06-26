@@ -1,5 +1,7 @@
 plugins {
-    id 'configure-publishing'
+    id 'maven-publish'
+    id 'java-gradle-plugin'
+    id 'com.gradle.plugin-publish' version '0.12.0'
 }
 
 group = 'com.github.zxhr'
@@ -20,12 +22,21 @@ java {
     withSourcesJar()
 }
 
+configurations {
+    testImplementation.extendsFrom compileOnly
+}
+
 dependencies {
-    api "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextVersion"
-    implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
+    api(platform('org.eclipse.xtext:xtext-dev-bom')) {
+        version {
+            require '[2.17.0,3.0.0)'
+            prefer xtextVersion
+        }
+    }
     implementation 'org.eclipse.emf:org.eclipse.emf.mwe2.launch'
-    implementation 'org.eclipse.xtext:xtext-antlr-generator'
-    implementation "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextVersion"
+    api 'org.eclipse.xtext:org.eclipse.xtext.xtext.generator'
+    runtimeOnly 'org.eclipse.xtext:xtext-antlr-generator'
+    compileOnly "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextVersion"
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
@@ -77,23 +88,32 @@ gradlePlugin {
             description = 'Plugin for configuring the web project of an Xtext DSL language'
         }
     }
+    pluginSourceSet sourceSets.create('ignore')
 }
 
 pluginBundle {
     website = 'https://github.com/zxhr/gradle-xtext-generator/'
     vcsUrl = website
     tags = ['xtext', 'mwe2']
+}
 
-    mavenCoordinates {
-        groupId = project.group
-        artifactId = project.name
-        version = project.version
+publishing {
+    repositories {
+        maven {
+            name = 'test'
+            url "${buildDir}/m2"
+        }
     }
 }
 
 tasks.named(JavaPlugin.TEST_TASK_NAME) {
+    def repository = publishing.repositories.test
+    dependsOn "publishAllPublicationsTo${repository.name.capitalize()}Repository"
     useJUnitPlatform()
     systemProperty 'java.io.tmpdir', temporaryDir
+    systemProperty 'm2', file(repository.url)
+    systemProperty 'pluginVersion', version
+    systemProperty 'xtextVersion', xtextVersion
     doFirst {
         mkdir temporaryDir
     }
