@@ -1,0 +1,37 @@
+import org.eclipse.xtext.xtext.generator.StandardLanguage
+import org.eclipse.xtext.util.XtextVersion
+
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    ext {
+        xtextOverridenVersion = '2.20.0'
+    }
+    dependencies {
+        classpath enforcedPlatform("org.eclipse.xtext:xtext-dev-bom:$xtextOverridenVersion")
+        classpath "com.github.zxhr:gradle-xtext-generator:$pluginVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.xtext.generator:$xtextOverridenVersion"
+        classpath "org.eclipse.xtext:org.eclipse.xtext.common.types:$xtextOverridenVersion"
+    }
+}
+
+apply plugin: 'com.github.zxhr.xtext-generator-root-project'
+assert XtextVersion.current.version == xtextOverridenVersion
+
+subprojects {
+    group = 'org.xtext.example.mydsl'
+    version = '0.0.0-SNAPSHOT'
+    repositories {
+        jcenter()
+    }
+}
+
+xtextRoot {
+    language('MyDsl', StandardLanguage) {
+        grammarUri = uri('src/main/xtext/MyDsl.xtext').toString()
+        fileExtensions = 'mydsl'
+        junitSupport.generateXtendStub = false
+    }
+}
