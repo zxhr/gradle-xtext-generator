@@ -237,6 +237,15 @@ public abstract class XtextRootProjectExtension {
     }
 
     /**
+     * Configures the {@link CodeConfig} for the project generation.
+     * 
+     * @param action a configuration action
+     */
+    public void codeConfig(Action<? super CodeConfig> action) {
+        action.execute(getCodeConfig());
+    }
+
+    /**
      * Returns the fully-configured {@link XtextGenerator}.
      * 
      * @return Xtext generator
