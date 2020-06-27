@@ -110,7 +110,7 @@ tasks.named(JavaPlugin.TEST_TASK_NAME) {
     def repository = publishing.repositories.test
     dependsOn "publishAllPublicationsTo${repository.name.capitalize()}Repository"
     useJUnitPlatform()
-    systemProperty 'java.io.tmpdir', temporaryDir
+    systemProperty 'testdir', temporaryDir
     systemProperty 'm2', file(repository.url)
     systemProperty 'pluginVersion', version
     systemProperty 'xtextVersion', xtextVersion

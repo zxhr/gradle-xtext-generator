@@ -4,6 +4,10 @@ import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.TaskProvider;
+
+import com.github.zxhr.gradle.xtext.GenerateMwe2;
+import com.github.zxhr.gradle.xtext.XtextRootProjectExtension;
 
 public class SubGradleProjectConfig implements ISubGradleProjectConfig {
 
@@ -27,6 +31,12 @@ public class SubGradleProjectConfig implements ISubGradleProjectConfig {
     @Override
     public Project getProject() {
         return project;
+    }
+
+    @Override
+    public TaskProvider<GenerateMwe2> getGenerateMwe2() {
+        XtextRootProjectExtension rootExtension = project.getExtensions().getByType(XtextRootProjectExtension.class);
+        return rootExtension.getGenerateMwe2Task();
     }
 
     @Override

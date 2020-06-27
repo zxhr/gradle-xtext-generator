@@ -1,6 +1,7 @@
 plugins {
     id 'com.github.zxhr.xtext-generator-eclipse-plugin'
     id 'com.github.zxhr.xtext-generator-eclipse-plugin-test'
+    id 'eclipse'
 }
 
 import org.gradle.internal.os.OperatingSystem
