@@ -2,20 +2,13 @@ package com.github.zxhr.gradle.xtext;
 
 import org.codehaus.groovy.runtime.GStringImpl;
 import org.eclipse.xtext.util.XtextVersion;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.jvm.tasks.Jar;
 
-import com.github.zxhr.gradle.xtext.model.project.IBundleGradleProjectConfig;
 import com.github.zxhr.gradle.xtext.model.project.ISubGradleProjectConfig;
 
 public class XtextRootProjectPlugin implements Plugin<Project> {
@@ -61,17 +54,6 @@ public class XtextRootProjectPlugin implements Plugin<Project> {
             configurePlugin(XtextEclipsePluginTestPlugin.class, p, rootExtension.getEclipsePluginTestConfig(),
                     XtextEclipsePluginTestPlugin.EXTENSION_NAME);
             configurePlugin(XtextWebPlugin.class, p, rootExtension.getWebConfig(), XtextWebPlugin.EXTENSION_NAME);
-        });
-
-        generateMwe2.configure(task -> {
-            ((Task) task).doLast(new Action<Task>() {
-                @Override
-                public void execute(Task t) {
-                    configureJarManifest(rootExtension.getRuntimeConfig());
-                    configureJarManifest(rootExtension.getGenericIdeConfig());
-                    configureJarManifest(rootExtension.getEclipsePluginConfig());
-                }
-            });
         });
     }
 
@@ -122,18 +104,5 @@ public class XtextRootProjectPlugin implements Plugin<Project> {
         if (!ext.has(XTEXT_VERSION_PROPERTY)) {
             ext.set(XTEXT_VERSION_PROPERTY, xtextVersion);
         }
-    }
-
-    private static <T extends IBundleGradleProjectConfig> void configureJarManifest(Provider<T> projectConfigProvider) {
-        IBundleGradleProjectConfig projectConfig = projectConfigProvider.getOrNull();
-        if (projectConfig == null) {
-            return;
-        }
-        RegularFile manifest = projectConfig.getManifest().getOrNull();
-        if (manifest == null) {
-            return;
-        }
-        projectConfig.getProject().getTasks().named(JavaPlugin.JAR_TASK_NAME, Jar.class,
-                task -> task.getManifest().from(manifest));
     }
 }

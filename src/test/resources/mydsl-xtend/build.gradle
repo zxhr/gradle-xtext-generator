@@ -31,6 +31,5 @@ xtextRoot {
     language('MyDsl', StandardLanguage) {
         grammarUri = uri('src/main/xtext/MyDsl.xtext').toString()
         fileExtensions = 'mydsl'
-        junitSupport.generateXtendStub = false
     }
 }

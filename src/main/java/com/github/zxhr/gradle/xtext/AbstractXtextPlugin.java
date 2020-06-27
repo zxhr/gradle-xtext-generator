@@ -2,6 +2,8 @@ package com.github.zxhr.gradle.xtext;
 
 import java.io.File;
 import java.util.function.Function;
+
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -9,6 +11,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -119,6 +122,9 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
             IBundleGradleProjectConfig bundleConfig = (IBundleGradleProjectConfig) projectConfig;
             bundleConfig.getManifest().set(projectConfig.getMetaInfDirectory().file("MANIFEST.MF"));
             bundleConfig.getPluginXml().set(srcGenResourcesDir.map(d -> d.file("plugin.xml")));
+            if (SourceSet.MAIN_SOURCE_SET_NAME.equals(sourceSetName)) {
+                configureManifest(project, bundleConfig);
+            }
         }
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
@@ -156,6 +162,25 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
             resourceDirs.add(webConfig.getAssetsDirectory().getAsFile().map(File::getParentFile));
         }
         resources.srcDir(resourceDirs);
+    }
+
+    private static void configureManifest(Project project, IBundleGradleProjectConfig projectConfig) {
+        project.getTasks().named(JavaPlugin.JAR_TASK_NAME, Jar.class, jarTask -> {
+            XtextRootProjectExtension rootExtension = project.getExtensions()
+                    .getByType(XtextRootProjectExtension.class);
+            rootExtension.getGenerateMwe2Task().configure(generateMwe2 -> {
+                ((Task) generateMwe2).doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task t) {
+                        RegularFile manifest = projectConfig.getManifest().getOrNull();
+                        if (manifest == null) {
+                            return;
+                        }
+                        jarTask.getManifest().from(manifest);
+                    }
+                });
+            });
+        });
     }
 
     private static void configurePdeTask(Project project) {
