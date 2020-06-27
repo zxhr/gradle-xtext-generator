@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Stream;
 
+import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -62,7 +63,7 @@ public class XtextProjectPluginsFunctionalTest {
         checkEclipsePdeSetup(tempDir.resolve("example.mydsl.ui"));
 
         result = runProject(BUILD_TASK_NAME);
-        assertEquals(UP_TO_DATE, result.task(":" + GENERATE_MWE2_TASK_NAME).getOutcome());
+        assertEquals(UP_TO_DATE, result.task(getTask(GENERATE_MWE2_TASK_NAME)).getOutcome());
     }
 
     @Test
@@ -89,16 +90,16 @@ public class XtextProjectPluginsFunctionalTest {
 
     private void checkProjectsGenerated(BuildResult result, String runtimeProject, String genericIdeProject,
             String eclipsePluginProject, String webProject) {
-        assertEquals(SUCCESS, result.task(":" + GENERATE_MWE2_TASK_NAME).getOutcome());
-        assertEquals(SUCCESS, result.task(":" + runtimeProject + ":" + COMPILE_JAVA_TASK_NAME).getOutcome());
-        assertEquals(SUCCESS, result.task(":" + runtimeProject + ":" + COMPILE_TEST_JAVA_TASK_NAME).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(GENERATE_MWE2_TASK_NAME)).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(runtimeProject, COMPILE_JAVA_TASK_NAME)).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(runtimeProject, COMPILE_TEST_JAVA_TASK_NAME)).getOutcome());
         checkRuntimeProjectGenerated(tempDir.resolve(runtimeProject));
-        assertEquals(SUCCESS, result.task(":" + genericIdeProject + ":" + COMPILE_JAVA_TASK_NAME).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(genericIdeProject, COMPILE_JAVA_TASK_NAME)).getOutcome());
         checkBundleProjectGenerated(tempDir.resolve(genericIdeProject));
-        assertEquals(SUCCESS, result.task(":" + eclipsePluginProject + ":" + COMPILE_JAVA_TASK_NAME).getOutcome());
-        assertEquals(SUCCESS, result.task(":" + eclipsePluginProject + ":" + COMPILE_TEST_JAVA_TASK_NAME).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(eclipsePluginProject, COMPILE_JAVA_TASK_NAME)).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(eclipsePluginProject, COMPILE_TEST_JAVA_TASK_NAME)).getOutcome());
         checkEclipsePluginProjectGenerated(tempDir.resolve(eclipsePluginProject));
-        assertEquals(SUCCESS, result.task(":" + webProject + ":" + COMPILE_JAVA_TASK_NAME).getOutcome());
+        assertEquals(SUCCESS, result.task(getTask(webProject, COMPILE_JAVA_TASK_NAME)).getOutcome());
         checkProjectGenerated(tempDir.resolve(webProject));
     }
 
@@ -159,5 +160,13 @@ public class XtextProjectPluginsFunctionalTest {
         assertNotNull(bundleRootPath);
         Path buildProperties = projectDir.resolve(Paths.get(bundleRootPath, "build.properties"));
         assertTrue(isRegularFile(buildProperties));
+    }
+
+    private static String getTask(String... pathToTask) {
+        String taskPath = "";
+        for (String part : pathToTask) {
+            taskPath += Project.PATH_SEPARATOR + part;
+        }
+        return taskPath;
     }
 }
