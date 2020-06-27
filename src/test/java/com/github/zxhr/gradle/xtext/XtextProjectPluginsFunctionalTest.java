@@ -13,6 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,13 +23,15 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
+import java.util.stream.Stream;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class XtextProjectPluginsFunctionalTest {
 
@@ -98,6 +103,7 @@ public class XtextProjectPluginsFunctionalTest {
     private void checkBundleProjectGenerated(Path projectDir) {
         checkProjectGenerated(projectDir);
         assertTrue(isRegularFile(projectDir.resolve("build/src-gen/main/resources/META-INF/MANIFEST.MF")));
+        checkManifestIsNotEmpty(projectDir);
     }
 
     private void checkEclipsePluginProjectGenerated(Path projectDir) {
@@ -115,5 +121,25 @@ public class XtextProjectPluginsFunctionalTest {
         assertTrue(isDirectory(projectDir.resolve("build/src-gen/test/java")));
         assertTrue(isDirectory(projectDir.resolve("build/src-gen/test/resources")));
         assertTrue(isRegularFile(projectDir.resolve("build/src-gen/main/resources/plugin.xml")));
+    }
+
+    private void checkManifestIsNotEmpty(Path projectDir) {
+        Path jarFile;
+        try (Stream<Path> libs = Files.list(projectDir.resolve(Paths.get("build", "libs")))) {
+            jarFile = libs.findFirst().orElseThrow(IOException::new);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        URI uri = URI.create("jar:" + jarFile.toUri());
+        try (FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap())) {
+            Path manifest = fs.getPath("META-INF", "MANIFEST.MF");
+            assertTrue(Files.isRegularFile(manifest));
+            Properties properties = new Properties();
+            properties.load(Files.newInputStream(manifest));
+            assertTrue(properties.size() > 1);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
