@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -64,6 +65,10 @@ public class XtextProjectPluginsFunctionalTest {
 
         result = runProject(BUILD_TASK_NAME);
         assertEquals(UP_TO_DATE, result.task(getTask(GENERATE_MWE2_TASK_NAME)).getOutcome());
+        Path pluginXml = tempDir
+                .resolve(Paths.get("example.mydsl", "build", "src-gen", "main", "resources", "plugin.xml"));
+        String pluginXmlText = new String(Files.readAllBytes(pluginXml), StandardCharsets.UTF_8);
+        assertTrue(pluginXmlText.contains("point=\"org.example.extension.point\""));
     }
 
     @Test

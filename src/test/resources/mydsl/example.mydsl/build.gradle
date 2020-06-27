@@ -1,3 +1,6 @@
+import groovy.util.XmlSlurper
+import groovy.xml.XmlUtil
+
 plugins {
     id 'com.github.zxhr.xtext-generator-runtime'
     id 'com.github.zxhr.xtext-generator-runtime-test'
@@ -9,4 +12,19 @@ dependencies {
 
     testImplementation "org.eclipse.xtext:org.eclipse.xtext.testing:$xtextVersion"
     testImplementation 'junit:junit:4.12'
+}
+
+xtextRuntime {
+    generateMwe2.configure {
+        doLast {
+            def xml = new XmlSlurper().parse(file(pluginXml))
+            xml.appendNode {
+                extension(point: 'org.example.extension.point') {
+                    'package'(uri: 'https://www.example.com',
+                              class: 'org.example.cls')
+                }
+            }
+            file(pluginXml).text = XmlUtil.serialize(xml)
+        }
+    }
 }
