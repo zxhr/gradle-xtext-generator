@@ -8,8 +8,10 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_JAVA_TASK_NAME;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME;
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME;
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.CLEAN_TASK_NAME;
+import static org.gradle.plugins.ide.eclipse.EclipsePlugin.ECLIPSE_TASK_NAME;
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -31,7 +33,7 @@ import java.util.stream.Stream;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Test;;
 
 public class XtextProjectPluginsFunctionalTest {
 
@@ -54,8 +56,9 @@ public class XtextProjectPluginsFunctionalTest {
     @Test
     public void testXtextJavaProject() throws IOException {
         setupProject("mydsl");
-        BuildResult result = runProject(CLEAN_TASK_NAME, BUILD_TASK_NAME);
+        BuildResult result = runProject(CLEAN_TASK_NAME, BUILD_TASK_NAME, ECLIPSE_TASK_NAME);
         checkProjectsGenerated(result, "example.mydsl", "example.mydsl.ide", "example.mydsl.ui", "example.mydsl.web");
+        checkEclipsePdeSetup(tempDir.resolve("example.mydsl.ui"));
     }
 
     @Test
@@ -141,5 +144,16 @@ public class XtextProjectPluginsFunctionalTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private void checkEclipsePdeSetup(Path projectDir) throws IOException {
+        Path pdePreferences = projectDir.resolve(Paths.get(".settings", "org.eclipse.pde.core.prefs"));
+        assertTrue(isRegularFile(pdePreferences));
+        Properties pdeProperties = new Properties();
+        pdeProperties.load(Files.newInputStream(pdePreferences));
+        String bundleRootPath = pdeProperties.getProperty("BUNDLE_ROOT_PATH");
+        assertNotNull(bundleRootPath);
+        Path buildProperties = projectDir.resolve(Paths.get(bundleRootPath, "build.properties"));
+        assertTrue(isRegularFile(buildProperties));
     }
 }
