@@ -4,6 +4,9 @@ import org.eclipse.xtext.xtext.generator.model.project.SubProjectConfig;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.TaskProvider;
+
+import com.github.zxhr.gradle.xtext.GenerateMwe2;
 
 /**
  * Configuration for an Xtext sub-project, analogous to
@@ -17,6 +20,13 @@ public interface ISubGradleProjectConfig {
      * @return the Gradle {@link Project} associated with this configuration
      */
     Project getProject();
+
+    /**
+     * Returns the task that generates this project.
+     * 
+     * @return the task that generates this project
+     */
+    TaskProvider<GenerateMwe2> getGenerateMwe2();
 
     /**
      * Returns the name of the project.
