@@ -6,6 +6,7 @@ plugins {
 
 group = 'com.github.zxhr'
 version = '0.0.1-SNAPSHOT'
+description = 'asdf'
 
 ext {
     xtextVersion = '2.22.0'
@@ -92,12 +93,25 @@ gradlePlugin {
 }
 
 pluginBundle {
-    website = 'https://github.com/zxhr/gradle-xtext-generator/'
+    website = 'https://github.com/zxhr/gradle-xtext-generator'
     vcsUrl = website
     tags = ['xtext', 'mwe2']
 }
 
 publishing {
+    publications.withType(MavenPublication) {
+        pom {
+            description = project.description
+            url = pluginBundle.website
+            licenses {
+                license {
+                    name = 'MIT License'
+                    url = "${pluginBundle.website}/blob/master/LICENSE.md"
+                    distribution = 'repo'
+                }
+            }
+        }
+    }
     repositories {
         maven {
             name = 'test'
@@ -146,6 +160,12 @@ tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
             file("${javadocsDir}/package-list").text = packages.join('\n') + '\n'
             options.linksOffline(url, javadocsDir.path)
         }
+    }
+}
+
+tasks.withType(Jar).configureEach {
+    metaInf {
+        from 'LICENSE.md'
     }
 }
 
