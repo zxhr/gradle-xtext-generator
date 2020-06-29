@@ -12,7 +12,9 @@ repositories {
         patternLayout {
             artifact '[artifact]_[revision].[ext]'
         }
-        metadataSources.artifact()
+        metadataSources {
+            artifact()
+        }
     }
 }
 

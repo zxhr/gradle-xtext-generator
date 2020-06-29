@@ -128,6 +128,9 @@ tasks.named(JavaPlugin.TEST_TASK_NAME) {
     systemProperty 'm2', file(repository.url)
     systemProperty 'pluginVersion', version
     systemProperty 'xtextVersion', xtextVersion
+    if (findProperty('gradleVersions') != null) {
+        systemProperty 'gradleVersions', gradleVersions
+    }
     doFirst {
         mkdir temporaryDir
     }

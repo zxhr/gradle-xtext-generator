@@ -16,4 +16,4 @@ jobs:
       with:
         java-version: ${{ matrix.jdk }}
     - name: Build
-      run: ./gradlew build --info --stacktrace --warning-mode=fail
+      run: ./gradlew build "-PgradleVersions=6.2.2,current" --info --stacktrace --warning-mode=fail
