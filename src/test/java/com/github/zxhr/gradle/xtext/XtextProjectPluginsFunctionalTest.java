@@ -36,11 +36,22 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class XtextProjectPluginsFunctionalTest {
 
     private Path tempDir;
+
+    public static Stream<String> getGradleVersions() {
+        String gradleVersions = System.getProperty("gradleVersions");
+        Stream<String> current = Stream.of("current");
+        if (gradleVersions == null) {
+            return current;
+        } else {
+            return Stream.concat(current, Stream.of(gradleVersions.split(","))).distinct();
+        }
+    }
 
     private void setupProject(String project) throws IOException {
         tempDir = Files.createTempDirectory(Paths.get(System.getProperty("testdir")), project);
@@ -56,14 +67,15 @@ public class XtextProjectPluginsFunctionalTest {
         });
     }
 
-    @Test
-    public void testXtextJavaProject() throws IOException {
+    @ParameterizedTest(name = "Xtext Java Project - Gradle {0}")
+    @MethodSource("getGradleVersions")
+    public void testXtextJavaProject(String gradleVersion) throws IOException {
         setupProject("mydsl");
-        BuildResult result = runProject(CLEAN_TASK_NAME, BUILD_TASK_NAME, ECLIPSE_TASK_NAME);
+        BuildResult result = runProject(gradleVersion, CLEAN_TASK_NAME, BUILD_TASK_NAME, ECLIPSE_TASK_NAME);
         checkProjectsGenerated(result, "example.mydsl", "example.mydsl.ide", "example.mydsl.ui", "example.mydsl.web");
         checkEclipsePdeSetup(tempDir.resolve("example.mydsl.ui"));
 
-        result = runProject(BUILD_TASK_NAME);
+        result = runProject(gradleVersion, BUILD_TASK_NAME);
         assertEquals(UP_TO_DATE, result.task(getTask(GENERATE_MWE2_TASK_NAME)).getOutcome());
         Path pluginXml = tempDir
                 .resolve(Paths.get("example.mydsl", "build", "src-gen", "main", "resources", "plugin.xml"));
@@ -71,26 +83,33 @@ public class XtextProjectPluginsFunctionalTest {
         assertTrue(pluginXmlText.contains("point=\"org.example.extension.point\""));
     }
 
-    @Test
-    public void testXtextXtendProject() throws IOException {
+    @ParameterizedTest(name = "Xtext Xtend Project - Gradle {0}")
+    @MethodSource("getGradleVersions")
+    public void testXtextXtendProject(String gradleVersion) throws IOException {
         setupProject("mydsl-xtend");
-        BuildResult result = runProject(CLEAN_TASK_NAME, BUILD_TASK_NAME);
+        BuildResult result = runProject(gradleVersion, CLEAN_TASK_NAME, BUILD_TASK_NAME);
         checkProjectsGenerated(result, "example.mydsl", "example.mydsl.ide", "example.mydsl.ui", "example.mydsl.web");
     }
 
-    @Test
-    public void testDifferentVersionXtextProject() throws IOException {
+    @ParameterizedTest(name = "Xtext 2.20.0 Java Project - Gradle {0}")
+    @MethodSource("getGradleVersions")
+    public void testDifferentVersionXtextProject(String gradleVersion) throws IOException {
         setupProject("mydsl-xtext-version");
-        BuildResult result = runProject(CLEAN_TASK_NAME, BUILD_TASK_NAME);
+        BuildResult result = runProject(gradleVersion, CLEAN_TASK_NAME, BUILD_TASK_NAME);
         checkProjectsGenerated(result, "example.mydsl", "example.mydsl.ide", "example.mydsl.ui", "example.mydsl.web");
     }
 
-    private BuildResult runProject(String... tasks) {
-        List<String> arguments = new ArrayList<>(asList(tasks));
+    private BuildResult runProject(String gradleVersion, String... tasks) {
+        List<String> arguments = new ArrayList<>();
         arguments.addAll(asList("-PxtextExampleVersion=" + System.getProperty("xtextVersion"),
                 "-PpluginVersion=" + System.getProperty("pluginVersion"),
                 "-Dmaven.repo.local=" + System.getProperty("m2"), "-s", "--warning-mode=fail"));
-        return GradleRunner.create().withProjectDir(tempDir.toFile()).forwardOutput().withArguments(arguments).build();
+        arguments.addAll(asList(tasks));
+        GradleRunner runner = GradleRunner.create();
+        if (!"current".equals(gradleVersion)) {
+            runner = runner.withGradleVersion(gradleVersion);
+        }
+        return runner.withProjectDir(tempDir.toFile()).forwardOutput().withArguments(arguments).build();
     }
 
     private void checkProjectsGenerated(BuildResult result, String runtimeProject, String genericIdeProject,
