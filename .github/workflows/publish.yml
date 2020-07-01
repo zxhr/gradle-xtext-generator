@@ -20,7 +20,7 @@ jobs:
     - name: Build
       run: ./gradlew build --write-locks --info --stacktrace --warning-mode=fail
     - name: Publish
-      run: ./gradlew publishPlugins --info --stacktrace --warning-mode=fail
+      run: ./gradlew publishPlugins --info --stacktrace --warning-mode=fail "-Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }}" "-Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }}"
     - name: Release
       run: |
         git config user.name '${{ github.event.client_payload.username }}'
