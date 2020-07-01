@@ -6,7 +6,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
         jdk: [8, 11]
     runs-on: ${{ matrix.os }}
 
@@ -16,4 +16,4 @@ jobs:
       with:
         java-version: ${{ matrix.jdk }}
     - name: Build
-      run: ./gradlew build "-PgradleVersions=6.2.2,current" --info --stacktrace --warning-mode=fail
+      run: ./gradlew build "-PgradleVersions=6.1.1,current" --info --stacktrace --warning-mode=fail

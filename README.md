@@ -14,7 +14,7 @@ within Gradle. This includes:
 * Generates the project's `build.properties` when imported into Eclipse so that dsl project can be launched and tested
   within Eclipse PDE.
 
-These plugins have been successfully tested with Gradle 6.2 up to 6.5. They should work with newer versions as well.
+These plugins have been successfully tested with Gradle 6.1 up to 6.5. They should work with newer versions as well.
 
 ## Usage
 
