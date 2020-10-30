@@ -9,7 +9,7 @@ version = '0.2.0-SNAPSHOT'
 description = 'Plugins for seamlessly using the Xtext DSL language generator with Gradle'
 
 ext {
-    xtextVersion = '2.22.0'
+    xtextVersion = '2.23.0'
 }
 
 repositories {
