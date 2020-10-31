@@ -17,7 +17,6 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -25,6 +24,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+
 import com.github.zxhr.gradle.xtext.model.project.IBundleGradleProjectConfig;
 import com.github.zxhr.gradle.xtext.model.project.IRuntimeGradleProjectConfig;
 import com.github.zxhr.gradle.xtext.model.project.ISubGradleProjectConfig;
@@ -185,8 +185,6 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
 
     private static void configurePdeTask(Project project) {
         project.getPlugins().withType(EclipsePlugin.class, plugin -> {
-            String cleanPde = "clean" + Character.toUpperCase(CONFIGURE_PDE_TASK_NAME.charAt(0))
-                    + CONFIGURE_PDE_TASK_NAME.substring(1);
             TaskContainer tasks = project.getTasks();
             TaskProvider<ConfigurePde> configurePde;
             try {
@@ -196,7 +194,6 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
                 configurePde = tasks.register(CONFIGURE_PDE_TASK_NAME, ConfigurePde.class, task -> {
                     ((Task) task).setGroup("IDE");
                     ((Task) task).setDescription("Generates the org.eclipse.pde.core.prefs file.");
-                    ((Task) task).shouldRunAfter(cleanPde);
                     task.getPdeDirectory().set(project.getLayout().getBuildDirectory().dir("pde"));
                     task.getPdeSettingFile().convention(
                             project.getLayout().getProjectDirectory().file(".settings/org.eclipse.pde.core.prefs"));
@@ -207,14 +204,7 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
                 SourceSet pde = sourceSets.create("pde");
                 pde.getResources().srcDir(configurePde.flatMap(ConfigurePde::getPdeDirectory));
             }
-            try {
-                tasks.named(cleanPde);
-            } catch (UnknownTaskException e) {
-                tasks.register(cleanPde, Delete.class,
-                        task -> task.delete(configurePde.flatMap(ConfigurePde::getPdeSettingFile)));
-            }
             plugin.getLifecycleTask().configure(task -> task.dependsOn(CONFIGURE_PDE_TASK_NAME));
-            plugin.getCleanTask().configure(task -> task.dependsOn(cleanPde));
             EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class);
             eclipseModel.synchronizationTasks(CONFIGURE_PDE_TASK_NAME);
         });
