@@ -58,7 +58,7 @@ public abstract class MergeManifest extends DefaultTask {
      * 
      * @param action manifest merge action
      */
-    public void mergeSpec(Action<? super ManifestMergeSpec> action) {
+    public void merge(Action<? super ManifestMergeSpec> action) {
         this.mergeAction = action;
     }
 
