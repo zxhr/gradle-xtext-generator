@@ -1,12 +1,20 @@
 package com.github.zxhr.gradle.xtext;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -159,17 +167,48 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
                     task.getManifests().from(bundleConfig.getManifest());
                 });
             }
+            project.afterEvaluate(__ -> {
+                rootExtension.get().getGenerateMwe2Task().configure(task -> {
+                    task.doLast(new Action<Task>() {
+                        @Override
+                        public void execute(Task t) {
+                            Path srcGenDir = bundleConfig.getSrcGenDirectory().get().getAsFile().toPath();
+                            Path resourcesDir = bundleConfig.getPluginXml().get().getAsFile().toPath().getParent();
+                            moveXtextFilesToResources(srcGenDir, resourcesDir);
+                        }
+                    });
+                });
+            });
         }
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
             resourceDirs.add(runtimeConfig.getEcoreModelDirectory().getAsFile().map(File::getParentFile));
-            resourceDirs.add(runtimeConfig.getSrcGenDirectory().getAsFile());
         }
         if (projectConfig instanceof IWebGradleProjectConfig) {
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
             resourceDirs.add(webConfig.getAssetsDirectory().getAsFile().map(File::getParentFile));
         }
         resources.srcDir(resourceDirs);
+    }
+
+    private static void moveXtextFilesToResources(Path srcGenDir, Path resourcesDir) {
+        try (Stream<Path> stream = Files.walk(srcGenDir).filter(Files::isRegularFile)
+                .filter(AbstractXtextPlugin::isNonJavaXtextFile)) {
+            for (Iterator<Path> itr = stream.iterator(); itr.hasNext();) {
+                Path xtextbin = itr.next();
+                Path destination = resourcesDir.resolve(srcGenDir.relativize(xtextbin));
+                Files.createDirectories(destination.getParent());
+                Files.move(xtextbin, destination, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static boolean isNonJavaXtextFile(Path file) {
+        String filename = file.getFileName().toString().toLowerCase();
+        String extension = filename.substring(filename.lastIndexOf('.') + 1);
+        return "xtextbin".equals(extension) || "g".equals(extension) || "tokens".equals(extension);
     }
 
     private static void configurePdeTask(Project project) {
