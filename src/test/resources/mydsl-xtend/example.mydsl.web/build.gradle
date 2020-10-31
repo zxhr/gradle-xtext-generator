@@ -7,6 +7,6 @@ dependencies {
     implementation project(':example.mydsl.ide')
     implementation platform("org.eclipse.xtext:xtext-dev-bom:$xtextVersion")
     implementation "org.eclipse.xtext:org.eclipse.xtext.web.servlet:$xtextVersion"
-    implementation 'org.eclipse.jetty:jetty-webapp:9.4.30.v20200611'
-    compileOnly 'org.eclipse.jetty:jetty-annotations:9.4.30.v20200611'
+    implementation 'org.eclipse.jetty:jetty-webapp:9.4.33.v20201020'
+    compileOnly 'org.eclipse.jetty:jetty-annotations:9.4.33.v20201020'
 }

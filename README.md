@@ -14,7 +14,7 @@ within Gradle. This includes:
 * Generates the project's `build.properties` when imported into Eclipse so that dsl project can be launched and tested
   within Eclipse PDE.
 
-These plugins have been successfully tested with Gradle 6.1 up to 6.5. They should work with newer versions as well.
+These plugins have been successfully tested with Gradle 6.1 up to 6.7. They should work with newer versions as well.
 
 ## Usage
 
@@ -44,7 +44,7 @@ import org.eclipse.xtext.xtext.generator.StandardLanguage
 
 buildscript {
     ext {
-        xtextVersion = '2.22.0'
+        xtextVersion = '2.23.0'
     }
     repositories {
         gradlePluginPortal()
@@ -141,6 +141,26 @@ xtextRuntime {
                 }
             }
             file(pluginXml).text = XmlUtil.serialize(xml)
+        }
+    }
+}
+```
+
+### Merging the Xtext-generated `manifest.mf` with Gradle's Jar task manifest
+
+#### `projectRoot/build.gradle`
+```groovy
+import com.github.zxhr.gradle.xtext.MergeManifest
+
+subprojects {
+    tasks.withType(MergeManifest).configureEach {
+        // ignore the Xtext-generated manifests
+        // (e.g., if applying the bnd plugin)
+        enabled = false
+
+        merge {
+            // manually handle merging the Xtext-generated manifest into the Jar manifest
+            // See [Manifest#from(Object, Action<ManifestMergeSpec>)](https://docs.gradle.org/current/javadoc/org/gradle/api/java/archives/Manifest.html#from-java.lang.Object-org.gradle.api.Action-)
         }
     }
 }
