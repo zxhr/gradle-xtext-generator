@@ -149,10 +149,12 @@ tasks.named(JavaPlugin.JAVADOC_TASK_NAME) {
          "https://docs.gradle.org/${gradle.gradleVersion}/javadoc/" :
             ['org.gradle.api',
              'org.gradle.api.file',
+             'org.gradle.api.java.archives',
              'org.gradle.api.model',
              'org.gradle.api.plugins',
              'org.gradle.api.provider',
              'org.gradle.api.tasks',
+             'org.gradle.api.tasks.bundling',
              'org.gradle.util'],
          'https://javaee.github.io/javaee-spec/javadocs/' :
             ['javax.inject']]
