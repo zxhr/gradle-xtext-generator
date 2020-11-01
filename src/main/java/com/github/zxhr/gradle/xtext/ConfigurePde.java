@@ -1,6 +1,8 @@
 package com.github.zxhr.gradle.xtext;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -89,11 +91,15 @@ public abstract class ConfigurePde extends DefaultTask {
         copy(getJar().get().getAsFile().toPath(), pdeDirectory);
         Properties buildProperties = new MapBackedProperties(getProperties().getOrElse(Collections.emptyMap()));
         Files.createDirectories(pdeDirectory);
-        buildProperties.store(Files.newBufferedWriter(pdeDirectory.resolve(BUILD_PROPERTIES)), null);
+        try (Writer writer = Files.newBufferedWriter(pdeDirectory.resolve(BUILD_PROPERTIES))) {
+            buildProperties.store(writer, null);
+        }
         Properties pdePrefs = new MapBackedProperties(new LinkedHashMap<>());
         Path settingsFile = getPdeSettingFile().get().getAsFile().toPath();
         if (Files.isRegularFile(settingsFile)) {
-            pdePrefs.load(Files.newBufferedReader(settingsFile));
+            try (Reader reader = Files.newBufferedReader(settingsFile)) {
+                pdePrefs.load(reader);
+            }
         } else {
             Files.createDirectories(settingsFile.getParent());
         }
@@ -105,7 +111,9 @@ public abstract class ConfigurePde extends DefaultTask {
             path += part + "/";
         }
         pdePrefs.setProperty("BUNDLE_ROOT_PATH", path);
-        pdePrefs.store(Files.newBufferedWriter(settingsFile), null);
+        try (Writer writer = Files.newBufferedWriter(settingsFile)) {
+            pdePrefs.store(writer, null);
+        }
     }
 
     private static void copy(Path jarFile, Path directory) throws IOException {
