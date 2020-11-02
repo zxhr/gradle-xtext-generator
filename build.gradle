@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.github.zxhr'
-version = '0.2.0'
+version = '0.3.0-SNAPSHOT'
 description = 'Plugins for seamlessly using the Xtext DSL language generator with Gradle'
 
 ext {
