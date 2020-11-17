@@ -2,12 +2,13 @@ package com.github.zxhr.gradle.xtext;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.Iterator;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -129,19 +130,21 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
         projectConfig.getProjectName().set(project.getName());
         projectConfig.getSrcDirectory().set(project.getLayout().dir(srcDir));
         projectConfig.getSrcGenDirectory().set(srcGenJavaDir);
-        projectConfig.getMetaInfDirectory().set(srcGenResourcesDir.map(d -> d.dir("META-INF")));
+        projectConfig.getResourcesGenDirectory().set(srcGenResourcesDir);
+        projectConfig.getMetaInfDirectory().set(projectConfig.getResourcesGenDirectory().map(d -> d.dir("META-INF")));
         if (projectConfig instanceof IBundleGradleProjectConfig) {
             IBundleGradleProjectConfig bundleConfig = (IBundleGradleProjectConfig) projectConfig;
             bundleConfig.getManifest().set(projectConfig.getMetaInfDirectory().file("MANIFEST.MF"));
-            bundleConfig.getPluginXml().set(srcGenResourcesDir.map(d -> d.file("plugin.xml")));
+            bundleConfig.getPluginXml().set(projectConfig.getResourcesGenDirectory().map(d -> d.file("plugin.xml")));
         }
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
-            runtimeConfig.getEcoreModelDirectory().set(srcGenResourcesDir.map(d -> d.dir("model")));
+            runtimeConfig.getEcoreModelDirectory()
+                    .set(projectConfig.getResourcesGenDirectory().map(d -> d.dir("model").dir("generated")));
         }
         if (projectConfig instanceof IWebGradleProjectConfig) {
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
-            webConfig.getAssetsDirectory().set(srcGenResourcesDir.map(d -> d.dir("assets")));
+            webConfig.getAssetsDirectory().set(projectConfig.getResourcesGenDirectory().map(d -> d.dir("assets")));
         }
         sourceSet.configure(ss -> configureSourceSet(project, ss, projectConfig));
     }
@@ -157,6 +160,7 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
         SourceDirectorySet resources = sourceSet.getResources();
         SetProperty<File> resourceDirs = project.getObjects().setProperty(File.class);
         resourceDirs.add(projectConfig.getMetaInfDirectory().getAsFile().map(File::getParentFile));
+
         if (projectConfig instanceof IBundleGradleProjectConfig) {
             IBundleGradleProjectConfig bundleConfig = (IBundleGradleProjectConfig) projectConfig;
             resourceDirs.add(bundleConfig.getPluginXml().getAsFile().map(File::getParentFile));
@@ -167,18 +171,6 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
                     task.getManifests().from(bundleConfig.getManifest());
                 });
             }
-            project.afterEvaluate(__ -> {
-                rootExtension.get().getGenerateMwe2Task().configure(task -> {
-                    task.doLast(new Action<Task>() {
-                        @Override
-                        public void execute(Task t) {
-                            Path srcGenDir = bundleConfig.getSrcGenDirectory().get().getAsFile().toPath();
-                            Path resourcesDir = bundleConfig.getPluginXml().get().getAsFile().toPath().getParent();
-                            moveXtextFilesToResources(srcGenDir, resourcesDir);
-                        }
-                    });
-                });
-            });
         }
         if (projectConfig instanceof IRuntimeGradleProjectConfig) {
             IRuntimeGradleProjectConfig runtimeConfig = (IRuntimeGradleProjectConfig) projectConfig;
@@ -188,27 +180,57 @@ public abstract class AbstractXtextPlugin<C extends ISubGradleProjectConfig> imp
             IWebGradleProjectConfig webConfig = (IWebGradleProjectConfig) projectConfig;
             resourceDirs.add(webConfig.getAssetsDirectory().getAsFile().map(File::getParentFile));
         }
+        project.afterEvaluate(__ -> {
+            rootExtension.get().getGenerateMwe2Task().configure(task -> {
+                task.doLast(new Action<Task>() {
+                    @Override
+                    public void execute(Task t) {
+                        Path srcGenDir = projectConfig.getSrcGenDirectory().get().getAsFile().toPath();
+                        Path resourcesDir = projectConfig.getResourcesGenDirectory().get().getAsFile().toPath();
+                        moveXtextFilesToResources(srcGenDir, resourcesDir);
+                    }
+                });
+            });
+        });
         resources.srcDir(resourceDirs);
     }
 
     private static void moveXtextFilesToResources(Path srcGenDir, Path resourcesDir) {
-        try (Stream<Path> stream = Files.walk(srcGenDir).filter(Files::isRegularFile)
-                .filter(AbstractXtextPlugin::isNonJavaXtextFile)) {
-            for (Iterator<Path> itr = stream.iterator(); itr.hasNext();) {
-                Path xtextbin = itr.next();
-                Path destination = resourcesDir.resolve(srcGenDir.relativize(xtextbin));
-                Files.createDirectories(destination.getParent());
-                Files.move(xtextbin, destination, StandardCopyOption.REPLACE_EXISTING);
-            }
+        try {
+            Files.walkFileTree(srcGenDir, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (isNonSourceFile(file)) {
+                        Path destination = resourcesDir.resolve(srcGenDir.relativize(file));
+                        Files.createDirectories(destination.getParent());
+                        Files.move(file, destination);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    boolean empty;
+                    try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dir)) {
+                        empty = !dirStream.iterator().hasNext();
+                    }
+                    if (empty) {
+                        Files.delete(dir);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private static boolean isNonJavaXtextFile(Path file) {
+    private static boolean isNonSourceFile(Path file) {
         String filename = file.getFileName().toString().toLowerCase();
         String extension = filename.substring(filename.lastIndexOf('.') + 1);
-        return "xtextbin".equals(extension) || "g".equals(extension) || "tokens".equals(extension);
+        return !("java".equals(extension) || "xtend".equals(extension));
     }
 
     private static void configurePdeTask(Project project) {

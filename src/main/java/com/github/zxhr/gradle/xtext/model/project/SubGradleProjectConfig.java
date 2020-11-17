@@ -16,6 +16,7 @@ public class SubGradleProjectConfig implements ISubGradleProjectConfig {
     private final DirectoryProperty metaInf;
     private final DirectoryProperty src;
     private final DirectoryProperty srcGen;
+    private final DirectoryProperty resourcesGen;
     private final DirectoryProperty icons;
 
     public SubGradleProjectConfig(Project project) {
@@ -25,6 +26,7 @@ public class SubGradleProjectConfig implements ISubGradleProjectConfig {
         this.metaInf = objects.directoryProperty();
         this.src = objects.directoryProperty();
         this.srcGen = objects.directoryProperty();
+        this.resourcesGen = objects.directoryProperty();
         this.icons = objects.directoryProperty();
     }
 
@@ -57,6 +59,11 @@ public class SubGradleProjectConfig implements ISubGradleProjectConfig {
     @Override
     public DirectoryProperty getSrcGenDirectory() {
         return srcGen;
+    }
+
+    @Override
+    public DirectoryProperty getResourcesGenDirectory() {
+        return resourcesGen;
     }
 
     @Override

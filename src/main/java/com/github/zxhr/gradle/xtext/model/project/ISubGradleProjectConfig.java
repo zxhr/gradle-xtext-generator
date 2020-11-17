@@ -57,6 +57,13 @@ public interface ISubGradleProjectConfig {
     DirectoryProperty getSrcGenDirectory();
 
     /**
+     * Returns the directory for Xtext-generated resource files.
+     * 
+     * @return the directory for Xtext-generated resource files
+     */
+    DirectoryProperty getResourcesGenDirectory();
+
+    /**
      * Returns the icons directory used by Xtext.
      * 
      * @return the icons directory used by Xtext
